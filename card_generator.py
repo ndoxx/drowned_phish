@@ -8,8 +8,7 @@ gencc: A simple program to generate credit card numbers that pass the
 MOD 10 check (Luhn formula).
 Usefull for testing e-commerce sites during development.
 by ..:: crazyjunkie ::.. 2014
-
-go to: https://github.com/eye9poob/python/blob/master/credit-card-numbers-generator.py
+visit: https://github.com/eye9poob/python/blob/master/credit-card-numbers-generator.py
 """
 
 from random import Random
