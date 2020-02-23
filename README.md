@@ -24,7 +24,7 @@ Les fausses informations sont générées depuis plusieurs listes de noms, pseud
 
 # Screenshots: #
 ![Target acquired](screenshots/0_scam_website.png?raw=true "Target acquired")
-![Sniff HTTP request](screenshots/1_POST_headers_and_data.png?raw=true "Sniff HTTP request")
+![Closing in](screenshots/1_POST_headers_and_data.png?raw=true "Closing in")
 ![Pwned](screenshots/2_pwned.png?raw=true "Pwned")
 
 # Third party: #

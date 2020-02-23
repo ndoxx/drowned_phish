@@ -120,11 +120,9 @@ def main(argv):
 	generator.load_tables()
 
 	# Init
-	print("Getting proxy list")
 	locator = ProxyLocator()
-
-	# profile = SkuSkuScammer()
-	profile = ImpotsGouvRuScammer()
+	profile = SkuSkuScammer()
+	# profile = ImpotsGouvRuScammer()
 
 	if mode == 'm':
 		try:

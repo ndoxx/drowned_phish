@@ -14,7 +14,6 @@ class SkuSkuScammer(ScammerProfile):
 						'sec-fetch-site': 'same-origin',
 						'sec-fetch-user': '?1',
 						'upgrade-insecure-requests': '1',
-						'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 						}
 		self.confirmation_regex = '(Demande de remboursement envoyée)'
 
@@ -77,7 +76,6 @@ class ImpotsGouvRuScammer(ScammerProfile):
 						'Origin': 'http://impots.gouv.fr-remboursement.service.email.secure.u6179835bp.ha004.t.justns.ru',
 						'Referer': 'http://impots.gouv.fr-remboursement.service.email.secure.u6179835bp.ha004.t.justns.ru/impots-gouv/impots-gouv/2020/contact/fr/gouv/fr/email/',
 						'Upgrade-Insecure-Requests': '1',
-						'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 						}
 		self.confirmation_regex = '(Veuillez patienter pendant que nous traitons votre demande)'
 
