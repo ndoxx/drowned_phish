@@ -3,7 +3,9 @@
 # author: garbu
 # visit: https://github.com/bhuone-garbu/fake-credit-card
 
-# modifications: adapted to Python3
+# modifications:
+#   - adapted to Python3
+#   - made it return card numbers instead of printing them
 
 from random import randint
 
@@ -79,8 +81,7 @@ def generate_card(type):
     
     initial, rem = prefill(t)
     so_far = initial + [randint(1,9) for x in range(rem - 1)]
-    print("Card type: {0}, ".format(t))
-    print("".join(map(str,finalize(so_far))))
+    return "".join(map(str,finalize(so_far)))
 
 
 def main():

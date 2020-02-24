@@ -11,7 +11,7 @@ import sys, getopt
 import generator
 from proxy_locator import ProxyLocator
 
-from my_profiles import SkuSkuScammer, NaturalHerbScammer
+from my_profiles import SkuSkuScammer
 
 
 class bcolors:
