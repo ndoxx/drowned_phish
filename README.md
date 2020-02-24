@@ -1,7 +1,7 @@
 # drowned_phish #
 A small tool I made to flood phishers' databases with fake but credible information.
 
-Fake credentials are generated from several lists of names, pseudonyms and addresses. I use *crazyjunkie*'s generator to create valid credit card numbers that pass the MOD 10 check. This tool is programmed to generate plausible __FRENCH__ credentials, but it should be easy enough to adapt for any other country. drowned_phish comes with two actual scammer profiles I used during development. The codebase is not that great at the moment, because well... I'm no Python expert.
+Fake credentials are generated from several lists of names, pseudonyms and addresses. I use *bhuone-garbu*'s generator to create valid credit card numbers that pass the MOD 10 check. This tool is programmed to generate plausible __FRENCH__ credentials, but it should be easy enough to adapt for any other country. drowned_phish comes with two actual scammer profiles I used during development. The codebase is not that great at the moment, because well... I'm no Python expert.
 
 ## Features: ##
 - Fake credentials are plausible, credit card numbers pass the MOD 10 check
@@ -13,7 +13,7 @@ Fake credentials are generated from several lists of names, pseudonyms and addre
 # drowned_phish [FR] #
 Un outil que j'ai codé pour pourrir les bases de données de phishers, avec des informations fausses mais crédibles.
 
-Les fausses informations sont générées depuis plusieurs listes de noms, pseudonymes et adresses. J'utilise le générateur de *crazyjunkie* pour créer des numéros de carte de crédit valides, qui passent le test MOD 10. drowned_phish vient livré avec deux profiles d'arnaqueurs que j'ai utilisés lors du développement. Le code est loin d'être élégant pour le moment, je n'ai après tout que peu d'expérience avec Python.
+Les fausses informations sont générées depuis plusieurs listes de noms, pseudonymes et adresses. J'utilise le générateur de *bhuone-garbu* pour créer des numéros de carte de crédit valides, qui passent le test MOD 10. drowned_phish vient livré avec deux profiles d'arnaqueurs que j'ai utilisés lors du développement. Le code est loin d'être élégant pour le moment, je n'ai après tout que peu d'expérience avec Python.
 
 ## Fonctionnalités: ##
 - Les fausses informations sont plausibles, les numéros de carte de crédit passent le test MOD 10
@@ -28,4 +28,4 @@ Les fausses informations sont générées depuis plusieurs listes de noms, pseud
 ![Pwned](screenshots/2_pwned.png?raw=true "Pwned")
 
 # Third party: #
-[crazyjunkie's credit card number generator](https://github.com/eye9poob/python/blob/master/credit-card-numbers-generator.py "crazyjunkie's credit card number generator")
+[bhuone-garbu's credit card number generator](https://github.com/bhuone-garbu/fake-credit-card "bhuone-garbu's credit card number generator")

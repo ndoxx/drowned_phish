@@ -36,6 +36,9 @@ class SkuSkuScammer(ScammerProfile):
 
 
 class ImpotsGouvRuScammer(ScammerProfile):
+	"""
+	Website is down.
+	"""
 	bank_abbrev = {"American Express": "amex",
 				   "Axa Banque": "axa",
 				   "Banque populaire": "bp",
@@ -109,3 +112,4 @@ class ImpotsGouvRuScammer(ScammerProfile):
 				'ghazcisse': '',
 				'ghazcisse0': ''
 				}
+

@@ -1,154 +1,96 @@
-#!/usr/bin/python
-# -*- coding: utf-8 -*-
-# by ..:: crazyjunkie ::.. 2014
-# If you need a Good Wordlist ====> http://uploaded.net/folder/j7gmyz
+#!/usr/bin/python3
 
-"""
-gencc: A simple program to generate credit card numbers that pass the
-MOD 10 check (Luhn formula).
-Usefull for testing e-commerce sites during development.
-by ..:: crazyjunkie ::.. 2014
-visit: https://github.com/eye9poob/python/blob/master/credit-card-numbers-generator.py
-"""
+# author: garbu
+# visit: https://github.com/bhuone-garbu/fake-credit-card
 
-from random import Random
-import copy
+# modifications: adapted to Python3
 
-visaPrefixList = [
-        ['4', '5', '3', '9'],
-        ['4', '5', '5', '6'],
-        ['4', '9', '1', '6'],
-        ['4', '5', '3', '2'],
-        ['4', '9', '2', '9'],
-        ['4', '0', '2', '4', '0', '0', '7', '1'],
-        ['4', '4', '8', '6'],
-        ['4', '7', '1', '6'],
-        ['4']]
+from random import randint
 
-mastercardPrefixList = [
-        ['5', '1'], ['5', '2'], ['5', '3'], ['5', '4'], ['5', '5']]
-
-amexPrefixList = [['3', '4'], ['3', '7']]
-
-discoverPrefixList = [['6', '0', '1', '1']]
-
-dinersPrefixList = [
-        ['3', '0', '0'],
-        ['3', '0', '1'],
-        ['3', '0', '2'],
-        ['3', '0', '3'],
-        ['3', '6'],
-        ['3', '8']]
-
-enRoutePrefixList = [['2', '0', '1', '4'], ['2', '1', '4', '9']]
-
-jcbPrefixList = [['3', '5']]
-
-voyagerPrefixList = [['8', '6', '9', '9']]
-
-
-def completed_number(generator,prefix, length):
+def generate_card(type):
     """
-    'prefix' is the start of the CC number as a string, any number of digits.
-    'length' is the length of the CC number to generate. Typically 13 or 16
+    Prefill some values based on the card type
     """
+    card_types = ["americanexpress","visa13", "visa16","mastercard","discover"]
+    
+    def prefill(t):
+        # typical number of digits in credit card
+        def_length = 16
+        
+        """
+        Prefill with initial numbers and return it including the total number of digits
+        remaining to fill
+        """
+        if t == card_types[0]:
+            # american express starts with 3 and is 15 digits long
+            # override the def lengths
+            return [3, randint(4,7)], 13
+            
+        elif t == card_types[1] or t == card_types[2]:
+            # visa starts with 4
+            if t.endswith("16"):
+                return [4], def_length - 1
+            else:
+                return [4], 12
+            
+        elif t == card_types[3]:
+            # master card start with 5 and is 16 digits long
+            return [5, randint(1,5)], def_length - 2
+            
+        elif t == card_types[4]:
+            # discover card starts with 6011 and is 16 digits long
+            return [6, 0, 1, 1], def_length - 4
+            
+        else:
+            # this section probably not even needed here
+            return [], def_length
+    
+    def finalize(nums):
+        """
+        Make the current generated list pass the Luhn check by checking and adding
+        the last digit appropriately bia calculating the check sum
+        """
+        check_sum = 0
+        
+        #is_even = True if (len(nums) + 1 % 2) == 0 else False
+        
+        """
+        Reason for this check offset is to figure out whther the final list is going
+        to be even or odd which will affect calculating the check_sum.
+        This is mainly also to avoid reversing the list back and forth which is specified
+        on the Luhn algorithm.
+        """
+        check_offset = (len(nums) + 1) % 2
+        
+        for i, n in enumerate(nums):
+            if (i + check_offset) % 2 == 0:
+                n_ = n*2
+                check_sum += n_ -9 if n_ > 9 else n_
+            else:
+                check_sum += n
+        return nums + [10 - (check_sum % 10) ]
+    
+    # main body
+    t = type.lower()
+    if t not in card_types:
+        print("Unknown type: '{0}'".format(type))
+        print("Please pick one of these supported types: {0}".format(card_types))
+        return
+    
+    initial, rem = prefill(t)
+    so_far = initial + [randint(1,9) for x in range(rem - 1)]
+    print("Card type: {0}, ".format(t))
+    print("".join(map(str,finalize(so_far))))
 
-    ccnumber = prefix
 
-    # generate digits
+def main():
+    # run - check
+    generate_card("discover")
+    generate_card("mastercard")
+    generate_card("americanexpress")
 
-    while len(ccnumber) < (length - 1):
-        digit = str(generator.choice(range(0, 10)))
-        ccnumber.append(digit)
+    generate_card("visa13")
+    generate_card("visa16")
 
-    # Calculate sum
-
-    sum = 0
-    pos = 0
-
-    reversedCCnumber = []
-    reversedCCnumber.extend(ccnumber)
-    reversedCCnumber.reverse()
-
-    while pos < length - 1:
-
-        odd = int(reversedCCnumber[pos]) * 2
-        if odd > 9:
-            odd -= 9
-
-        sum += odd
-
-        if pos != (length - 2):
-
-            sum += int(reversedCCnumber[pos + 1])
-
-        pos += 2
-
-    # Calculate check digit
-
-    checkdigit = ((sum / 10 + 1) * 10 - sum) % 10
-
-    ccnumber.append(str(checkdigit))
-
-    return ''.join(ccnumber)
-
-
-def credit_card_number(rnd, prefixList, length, howMany):
-
-    result = []
-
-    while len(result) < howMany:
-
-        ccnumber = copy.copy(rnd.choice(prefixList))
-        result.append(completed_number(rnd,ccnumber, length))
-
-    return result
-
-
-def output(title, numbers):
-
-    result = []
-    result.append(title)
-    result.append('-' * len(title))
-    result.append('\n'.join(numbers))
-    result.append('')
-
-    return '\n'.join(result)
-
-#
-# Main
-#
-
-# generator = Random()
-# generator.seed()        # Seed from current time
-
-# print("credit card generator by ..:: crazyjunkie ::..\n")
-
-# mastercard = credit_card_number(generator, mastercardPrefixList, 16, 10)
-# print(output("Mastercard", mastercard))
-
-# visa16 = credit_card_number(generator, visaPrefixList, 16, 10)
-# print(output("VISA 16 digit", visa16))
-
-# visa13 = credit_card_number(generator, visaPrefixList, 13, 5)
-# print(output("VISA 13 digit", visa13))
-
-# amex = credit_card_number(generator, amexPrefixList, 15, 5)
-# print(output("American Express", amex))
-
-# # Minor cards
-
-# discover = credit_card_number(generator, discoverPrefixList, 16, 3)
-# print(output("Discover", discover))
-
-# diners = credit_card_number(generator, dinersPrefixList, 14, 3)
-# print(output("Diners Club / Carte Blanche", diners))
-
-# enRoute = credit_card_number(generator, enRoutePrefixList, 15, 3)
-# print(output("enRoute", enRoute))
-
-# jcb = credit_card_number(generator, jcbPrefixList, 16, 3)
-# print(output("JCB", jcb))
-
-# voyager = credit_card_number(generator, voyagerPrefixList, 15, 3)
-# print(output("Voyager", voyager))
+if __name__ == '__main__':
+    main()

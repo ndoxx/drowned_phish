@@ -206,9 +206,11 @@ class Identity:
 
 		rnd = random.Random()
 		if(random.randint(1,10)>5):
-			self.card = str(int(float(card_generator.credit_card_number(rnd, card_generator.mastercardPrefixList, 16, 1)[0])))
+			self.card = str(card_generator.generate_card("mastercard"))
+		elif(random.randint(1,10)>5):
+			self.card = str(card_generator.generate_card("americanexpress"))
 		else:
-			self.card = str(int(float(card_generator.credit_card_number(rnd, card_generator.visaPrefixList, 16, 1)[0])))
+			self.card = str(card_generator.generate_card("visa16"))
 
 		self.expm = "{:02d}".format(random.randint(1,12))
 		self.expy = str(random.randint(2019,2025))
@@ -237,7 +239,6 @@ def main():
 	random.Random().seed()
 	identity = Identity()
 	print(identity)
-
 
 
 if __name__ == '__main__':

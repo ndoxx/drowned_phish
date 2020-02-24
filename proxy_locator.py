@@ -76,7 +76,7 @@ class ProxyLocator:
 		print("Getting proxy list")
 
 		handlers = [ProxyListDownloadHandler(country='FR'), 
-					PubProxyHandler(country='FR')
+					PubProxyHandler(country='FR'),
 					]
 
 		# Merge responses and remove duplicate entries

@@ -11,7 +11,7 @@ import sys, getopt
 import generator
 from proxy_locator import ProxyLocator
 
-from my_profiles import SkuSkuScammer, ImpotsGouvRuScammer
+from my_profiles import SkuSkuScammer, NaturalHerbScammer
 
 
 class bcolors:
@@ -122,7 +122,6 @@ def main(argv):
 	# Init
 	locator = ProxyLocator()
 	profile = SkuSkuScammer()
-	# profile = ImpotsGouvRuScammer()
 
 	if mode == 'm':
 		try:
