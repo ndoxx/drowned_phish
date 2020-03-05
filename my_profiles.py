@@ -1,3 +1,4 @@
+import random, string
 from profile import ScammerProfile
 
 class SkuSkuScammer(ScammerProfile):
@@ -113,3 +114,69 @@ class ImpotsGouvRuScammer(ScammerProfile):
 				'ghazcisse0': ''
 				}
 
+def fake_PCS():
+	return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+
+def fake_PCS_amount():
+	amounts = [20, 50, 100, 150, 250]
+	return random.choice(amounts)
+
+class SoldesCouponPCSScammer(ScammerProfile):
+	def __init__(self):
+		ScammerProfile.__init__(self, 'https://soldes-coupon.com/index.php/verification/#wpcf7-f51-p17-o1')
+		self.headers = {'accept': 'application/json, text/javascript, */*; q=0.01',
+						'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
+						'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryxsDpseKLqMQ2Xj87',
+						'dnt': '1',
+						'origin': 'https://soldes-coupon.com',
+						'referer': 'https://soldes-coupon.com/index.php/verification/',
+						'sec-fetch-mode': 'cors',
+						'sec-fetch-site': 'same-origin',
+						'x-requested-with': 'XMLHttpRequest'
+						}
+		self.confirmation_regex = '(<title>VÉRIFIEZ VOTRE RECHARGE ICI &#8211; SOLDES COUPON</title>)'
+
+	def forge_data(self, identity):
+		return {'_wpcf7': '51',
+				'_wpcf7_version': '5.1.4',
+				'_wpcf7_locale': 'fr_FR',
+				'_wpcf7_unit_tag': 'wpcf7-f51-p17-o1',
+				'_wpcf7_container_post': '17',
+				'email': identity.email,
+				'tel': identity.phone,
+				'menu-397': 'PCS',
+				'code': fake_PCS(),
+				'montant': fake_PCS_amount(),
+				'mont': fake_PCS(),
+				'montu': fake_PCS_amount(),
+				'radio-125': 'OUI'
+				}
+
+class RechargePCSScammer(ScammerProfile):
+	def __init__(self):
+		ScammerProfile.__init__(self, 'https://rechargepcs.com/includes/action.php')
+		self.sessid_url = 'https://rechargepcs.com/index.php'
+		self.sessid_name = 'PHPSESSID'
+		self.headers = {'accept': 'application/json, text/javascript, */*; q=0.01',
+						'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
+						'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryxsDpseKLqMQ2Xj87',
+						'dnt': '1',
+						'origin': 'https://soldes-coupon.com',
+						'referer': 'https://soldes-coupon.com/index.php/verification/',
+						'sec-fetch-mode': 'cors',
+						'sec-fetch-site': 'same-origin',
+						'x-requested-with': 'XMLHttpRequest'
+						}
+		self.confirmation_regex = ''
+
+	def forge_data(self, identity):
+		return {'name': identity.surname + ' ' + identity.name,
+				'email': identity.email,
+				'telephone': identity.phone,
+				'montant1': fake_PCS_amount(),
+				'code1': fake_PCS(),
+				'montant2': fake_PCS_amount(),
+				'code2': fake_PCS(),
+				'showcode': '0',
+				'valider': 'Lancer la vérification',
+				}
