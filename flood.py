@@ -14,7 +14,8 @@ import sys, getopt
 import generator
 from proxy_locator import ProxyLocator
 
-from my_profiles import SkuSkuScammer, SoldesCouponPCSScammer, RechargePCSScammer
+# from my_profiles import SkuSkuScammer, SoldesCouponPCSScammer, RechargePCSScammer
+from config import Config
 
 
 class bcolors:
@@ -25,7 +26,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 
-def get_cookies(proxy, url, useragent):
+def get_cookies(proxy, url, useragent, timeout):
 	proxy_support = ProxyHandler({'https': proxy})
 	cj = CookieJar()
 	opener = build_opener(proxy_support, HTTPCookieProcessor(cj))
@@ -46,60 +47,62 @@ def get_cookies(proxy, url, useragent):
 
 	req = Request(url, data=None, headers=headers, method='GET')
 	try:
-		urlopen(req, timeout=.500)
+		urlopen(req, timeout=timeout)
 		return dict_from_cookiejar(cj)
 
 	except URLError as e:
 		print(bcolors.FAIL + str(e) + bcolors.ENDC)
 	except HTTPError as e:
 		print(bcolors.FAIL + str(e) + bcolors.ENDC)
+	except Exception as e:
+		print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
 
-def obtain_session_id(proxy, profile, useragent):
+def obtain_session_id(proxy, profile, useragent, timeout):
 	if profile.sessid_url is None:
 		return None
 
-	cookies = get_cookies(proxy, profile.sessid_url, useragent)
+	cookies = get_cookies(proxy, profile.sessid_url, useragent, timeout)
 	if not cookies or cookies is None:
 		return None
 
 	return cookies[profile.sessid_name]
 
 	
-def single_shot(proxies, profile):
+def single_shot(proxies, cfg):
 	status = {}
 	status['confirmed'] = False
 
 	identity = generator.Identity()
 	proxy = random.choice(proxies)
 	status['proxy'] = proxy
-	profile.headers['user-agent'] = identity.useragent
+	cfg.profile.headers['user-agent'] = identity.useragent
 
 	# If session ID is required, get one from cookies
-	if profile.sessid_url is not None:
-		sessid = obtain_session_id(proxy, profile, identity.useragent)
+	if cfg.profile.sessid_url is not None:
+		sessid = obtain_session_id(proxy, profile, identity.useragent, cfg.get_timeout)
 		if sessid is not None:
 			status['sessid'] = sessid
-			profile.headers['cookie'] = profile.sessid_name + '=' + sessid
+			cfg.profile.headers['cookie'] = cfg.profile.sessid_name + '=' + sessid
 		else:
 			status['error'] = '<Failed to obtain SESSID>'
 			return
 
-	data = profile.forge_data(identity)
+	data = cfg.profile.forge_data(identity)
 	status['data'] = str(data)
 	status['identity'] = str(identity)
 
-	req = Request(profile.post_url, data=urlencode(data).encode(), headers=profile.headers)
+	req = Request(cfg.profile.post_url, data=urlencode(data).encode(), headers=cfg.profile.headers)
 	proxy_support = ProxyHandler({'https': proxy})
 	opener = build_opener(proxy_support)
 	install_opener(opener)
 
 	try:
-		response = urlopen(req, timeout=.500).read().decode()
+		response = urlopen(req, timeout=cfg.post_timeout).read().decode()
 		status['response'] = response
 
 		# Check response
-		m = re.search(profile.confirmation_regex, response)
+		m = re.search(cfg.profile.confirmation_regex, response)
 		if m is not None:
 			status['confirmed'] = True
 
@@ -108,7 +111,7 @@ def single_shot(proxies, profile):
 	except HTTPError as e:
 		status['error'] = str(e)
 	except Exception as e:
-		status['error'] = e.message
+		status['error'] = str(e)
 
 	return status
 
@@ -145,7 +148,7 @@ def print_status(status, verbosity=0):
 	print(''.join(entries))
 
 
-def flood(threadName, delays, proxies, profile):
+def flood(threadName, delays, proxies, cfg):
 	iteration = 0
 	while True:
 		delay = delays[0]
@@ -153,7 +156,7 @@ def flood(threadName, delays, proxies, profile):
 			delay = random.uniform(delays[0], delays[1])
 
 		try:
-			status = single_shot(proxies, profile)
+			status = single_shot(proxies, cfg)
 			if 'error' not in status:
 				time.sleep(delay)
 		except:
@@ -201,29 +204,33 @@ def main(argv):
 		else:
 			assert False, "unhandled option"
 
-	generator.load_tables()
-
 	# Init
-	locator = ProxyLocator()
-	profile = SkuSkuScammer()
-	# profile = SoldesCouponPCSScammer()
-	# profile = RechargePCSScammer()
+	generator.load_tables()
+	cfg = Config()
+	locator = ProxyLocator(cfg.proxy_handlers)
 
+	# Multi-threaded fullon attack
 	if mode == 'm':
 		try:
-			_thread.start_new_thread(flood, ('Thread-1', [.010], locator.proxies, profile,))
-			_thread.start_new_thread(flood, ('Thread-2', [.010], locator.proxies, profile,))
-			_thread.start_new_thread(flood, ('Thread-3', [.010], locator.proxies, profile,))
-			_thread.start_new_thread(flood, ('Thread-4', [.010], locator.proxies, profile,))
+			_thread.start_new_thread(flood, ('Thread-1', [.010], locator.proxies, cfg,))
+			_thread.start_new_thread(flood, ('Thread-2', [.010], locator.proxies, cfg,))
+			_thread.start_new_thread(flood, ('Thread-3', [.010], locator.proxies, cfg,))
+			_thread.start_new_thread(flood, ('Thread-4', [.010], locator.proxies, cfg,))
 		except:
 			print("Error: unable to start thread")
 		while 1:
 			pass
+
+	# Stealth
 	elif mode == 's':
-		flood('Thread-1', [10,60], locator.proxies, profile)
+		flood('Thread-1', [10,60], locator.proxies, cfg)
+
+	# One-shot
 	elif mode == 'o':
-		status = single_shot(locator.proxies, profile)
+		status = single_shot(locator.proxies, cfg)
 		print_status(status, verbosity)
+
+	# Cookies analysis
 	elif mode == 'c':
 		proxy = random.choice(locator.proxies)
 		print(bcolors.OKYELLOW + 'proxy: ' + proxy + bcolors.ENDC)
