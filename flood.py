@@ -166,7 +166,7 @@ def print_status(status, verbosity=0):
 	else:
 		entries.append(bcolors.FAIL + 'Failed!' + bcolors.ENDC + '\n')
 
-	entries.append('--------------------------------')
+	entries.append('--------------------------------\n')
 
 	print(''.join(entries))
 
@@ -181,8 +181,11 @@ def flood(threadName, delays, proxies, cfg):
 		proxy = random.choice(proxies)
 		status = single_shot(proxy, cfg)
 
-		if status['bad_proxy']:
+		if status['bad_proxy'] and proxy in proxies:
 			proxies.remove(proxy)
+		if len(proxies) == 0:
+			print(bcolors.FAIL + 'Proxy list is empty. Terminating.' + bcolors.ENDC)
+			break
 
 		status['thread_attempt'] = threadName + ': attempt #' + str(iteration)
 		print_status(status, 0)

@@ -28,8 +28,11 @@ class ProxyListDownloadHandler(ProxySiteHandler):
 
 	def get(self):
 		req = Request(self.url, headers=self.headers)
-		response = urlopen(req).read().decode()
-		return response.split('\r\n')
+		try:
+			response = urlopen(req, timeout=1).read().decode()
+			return response.split('\r\n')
+		except:
+			return []
 
 
 class PubProxyHandler(ProxySiteHandler):
@@ -40,5 +43,8 @@ class PubProxyHandler(ProxySiteHandler):
 
 	def get(self):
 		req = Request(self.url, headers=self.headers)
-		response = urlopen(req).read().decode()
-		return response.split('\n')
+		try:
+			response = urlopen(req, timeout=1).read().decode()
+			return response.split('\n')
+		except:
+			return []

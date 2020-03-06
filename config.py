@@ -4,7 +4,13 @@ from proxy_handlers import ProxySiteHandler, ProxyListDownloadHandler, PubProxyH
 class Config:
 	def __init__(self):
 		self.profile = SkuSkuScammer()
-		self.proxy_handlers = [	ProxyListDownloadHandler(country='FR'), 
-								PubProxyHandler(country='FR') ]
+		self.proxy_handlers = [	ProxyListDownloadHandler(country='FR'),
+								# ProxyListDownloadHandler(country='US'), 
+								# ProxyListDownloadHandler(country='DE'), 
+								# ProxyListDownloadHandler(country='GB'), 
+								PubProxyHandler(country='FR'),
+								PubProxyHandler(country='US'),
+								PubProxyHandler(country='DE'),
+								PubProxyHandler(country='GB'),]
 		self.get_timeout = .800
 		self.post_timeout = .500
