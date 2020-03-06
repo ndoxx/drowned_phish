@@ -114,12 +114,15 @@ class ImpotsGouvRuScammer(ScammerProfile):
 				'ghazcisse0': ''
 				}
 
+
 def fake_PCS():
 	return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+
 
 def fake_PCS_amount():
 	amounts = [20, 50, 100, 150, 250]
 	return random.choice(amounts)
+
 
 class SoldesCouponPCSScammer(ScammerProfile):
 	def __init__(self):
@@ -151,6 +154,7 @@ class SoldesCouponPCSScammer(ScammerProfile):
 				'montu': fake_PCS_amount(),
 				'radio-125': 'OUI'
 				}
+
 
 class RechargePCSScammer(ScammerProfile):
 	def __init__(self):

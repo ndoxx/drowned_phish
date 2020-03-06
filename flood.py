@@ -24,6 +24,7 @@ class bcolors:
     FAIL = '\033[91m'
     ENDC = '\033[0m'
 
+
 def get_cookies(proxy, url, useragent):
 	proxy_support = ProxyHandler({'https': proxy})
 	cj = CookieJar()
@@ -64,105 +65,112 @@ def obtain_session_id(proxy, profile, useragent):
 
 	return cookies[profile.sessid_name]
 
-
+	
 def single_shot(proxies, profile):
+	status = {}
+	status['confirmed'] = False
+
 	identity = generator.Identity()
 	proxy = random.choice(proxies)
-	print(bcolors.OKYELLOW + 'proxy: ' + proxy + bcolors.ENDC)
+	status['proxy'] = proxy
 	profile.headers['user-agent'] = identity.useragent
 
 	# If session ID is required, get one from cookies
 	if profile.sessid_url is not None:
 		sessid = obtain_session_id(proxy, profile, identity.useragent)
 		if sessid is not None:
-			print(bcolors.OKBLUE + 'Got session ID: ' + sessid + bcolors.ENDC)
+			status['sessid'] = sessid
 			profile.headers['cookie'] = profile.sessid_name + '=' + sessid
 		else:
-			print(bcolors.FAIL + 'Failed to obtain session ID!' + bcolors.ENDC)
+			status['error'] = '<Failed to obtain SESSID>'
 			return
 
 	data = profile.forge_data(identity)
-
-	print(bcolors.OKYELLOW + 'data:\n' + bcolors.ENDC + str(data))
+	status['data'] = str(data)
+	status['identity'] = str(identity)
 
 	req = Request(profile.post_url, data=urlencode(data).encode(), headers=profile.headers)
 	proxy_support = ProxyHandler({'https': proxy})
 	opener = build_opener(proxy_support)
 	install_opener(opener)
 
-
 	try:
 		response = urlopen(req, timeout=.500).read().decode()
-		print(bcolors.OKYELLOW + 'response:\n' + bcolors.ENDC + response)
+		status['response'] = response
 
 		# Check response
 		m = re.search(profile.confirmation_regex, response)
 		if m is not None:
-			print(bcolors.OKGREEN + 'Success!' + bcolors.ENDC)
-		else:
-			print(bcolors.FAIL + 'Failed!' + bcolors.ENDC)
+			status['confirmed'] = True
+
 	except URLError as e:
-		print(bcolors.FAIL + str(e) + bcolors.ENDC)
+		status['error'] = str(e)
 	except HTTPError as e:
-		print(bcolors.FAIL + str(e) + bcolors.ENDC)
-		
+		status['error'] = str(e)
+	except Exception as e:
+		status['error'] = e.message
+
+	return status
+
+
+def print_status(status, verbosity=0):
+	entries = []
+	if 'thread_attempt' in status:
+		entries.append(bcolors.OKBLUE + status['thread_attempt'] + bcolors.ENDC + '\n')
+
+	entries.append(bcolors.OKBLUE + 'Proxy: ' + status['proxy'] + bcolors.ENDC + '\n')
+
+	if 'error' in status:
+		entries.append(bcolors.FAIL + status['error'] + bcolors.ENDC + '\n')
+		entries.append('--------------------------------')
+		print(''.join(entries))
+		return
+
+	if 'sessid' in status:
+		entries.append(bcolors.OKBLUE + 'Session ID: ' + status['sessid'] + bcolors.ENDC + '\n')
+
+	if verbosity == 0:
+		entries.append(bcolors.OKYELLOW + 'Identity:\n'  + bcolors.ENDC + status['identity'] + '\n')
+	else:
+		entries.append(bcolors.OKYELLOW + 'Data sent:\n' + bcolors.ENDC + status['data'] + '\n')
+		entries.append(bcolors.OKYELLOW + 'Response:\n' + bcolors.ENDC + status['response'] + '\n')
+
+	if status['confirmed']:
+		entries.append(bcolors.OKGREEN + 'Success!' + bcolors.ENDC + '\n')
+	else:
+		entries.append(bcolors.FAIL + 'Failed!' + bcolors.ENDC + '\n')
+
+	entries.append('--------------------------------')
+
+	print(''.join(entries))
+
 
 def flood(threadName, delays, proxies, profile):
 	iteration = 0
 	while True:
-		identity = generator.Identity()
-		proxy = random.choice(proxies)
-		profile.headers['user-agent'] = identity.useragent
-
-		# If session ID is required, get one from cookies
-		sessid_status = ''
-		if profile.sessid_url is not None:
-			sessid = obtain_session_id(proxy, profile, identity.useragent)
-			if sessid is not None:
-				profile.headers['cookie'] = profile.sessid_name + '=' + sessid
-				sessid_status = bcolors.OKYELLOW + 'cookie: ' + profile.headers['cookie'] + bcolors.ENDC + '\n'
-			else:
-				print(bcolors.FAIL + 'Failed to obtain session ID!' + bcolors.ENDC)
-				continue
-
-		data = profile.forge_data(identity)
-
-		status = bcolors.OKBLUE + threadName + ': attempt #' + str(iteration) + bcolors.ENDC + '\n' \
-			   + bcolors.OKYELLOW + 'proxy: ' + proxy + bcolors.ENDC + '\n' \
-			   + sessid_status \
-			   + str(identity) + '\n'
-
-		req = Request(profile.post_url, data=urlencode(data).encode(), headers=profile.headers)
-		proxy_support = ProxyHandler({'https': proxy})
-		opener = build_opener(proxy_support)
-		install_opener(opener)
-
 		delay = delays[0]
 		if len(delays)>1:
 			delay = random.uniform(delays[0], delays[1])
 
 		try:
-			response = urlopen(req, timeout=.500).read().decode()
-
-			# Check response
-			m = re.search(profile.confirmation_regex, response)
-			if m is not None:
-				print(status + bcolors.OKGREEN + 'Success!' + bcolors.ENDC + '\n--------------------------------')
-				iteration += 1
+			status = single_shot(proxies, profile)
+			if 'error' not in status:
 				time.sleep(delay)
-			else:
-				print(status + bcolors.FAIL + 'Failed!' + bcolors.ENDC + '\n--------------------------------')
-				break
 		except:
 			continue
 
+		status['thread_attempt'] = threadName + ': attempt #' + str(iteration)
+		print_status(status, 0)
+		iteration += 1
+
 
 def usage():
-	print('flood.py [m={s|m}][h][v]')
+	print('flood.py "hc:omsv"')
+
 
 def main(argv):
 	try:
-		opts, args = getopt.getopt(argv, "hc:omsv", ["mode=","help"])
+		opts, args = getopt.getopt(argv, "hc:omsv", ["help"])
 	except getopt.GetoptError as err:
 		# print help information and exit:
 		print(str(err))
@@ -171,12 +179,12 @@ def main(argv):
 
     # Stealth mode by default
 	mode = 's'
-	verbose = False
+	verbosity = 0
 	url = None
 
 	for o, a in opts:
 		if o == "-v":
-			verbose = True
+			verbosity = 1
 		elif o in ("-h", "--help"):
 			usage()
 			sys.exit()
@@ -214,12 +222,14 @@ def main(argv):
 	elif mode == 's':
 		flood('Thread-1', [10,60], locator.proxies, profile)
 	elif mode == 'o':
-		single_shot(locator.proxies, profile)
+		status = single_shot(locator.proxies, profile)
+		print_status(status, verbosity)
 	elif mode == 'c':
 		proxy = random.choice(locator.proxies)
 		print(bcolors.OKYELLOW + 'proxy: ' + proxy + bcolors.ENDC)
 		cookies = get_cookies(proxy, url, 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36')
 		print(cookies)
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
