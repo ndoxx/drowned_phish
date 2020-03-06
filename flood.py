@@ -68,13 +68,33 @@ def obtain_session_id(proxy, profile, useragent, timeout):
 
 	return cookies[profile.sessid_name]
 
+
+proxy_error_score = {}
+def is_bad_proxy(proxy, error):
+	global proxy_error_score
+	score = 0
+	m = re.search('(Connection refused|403 Forbidden|Tunnel connection failed|Connection reset by peer)', error)
+	if m is not None:
+		score = 5
+	m = re.search('(timed out)', error)
+	if m is not None:
+		score = 1
+
+	if score > 0:
+		proxy_error_score.setdefault(proxy, 0)
+		proxy_error_score[proxy] += score
+		if proxy_error_score[proxy] >= 5:
+			return True
+
+	return False
+
 	
-def single_shot(proxies, cfg):
+def single_shot(proxy, cfg):
 	status = {}
 	status['confirmed'] = False
+	status['bad_proxy'] = False
 
 	identity = generator.Identity()
-	proxy = random.choice(proxies)
 	status['proxy'] = proxy
 	cfg.profile.headers['user-agent'] = identity.useragent
 
@@ -107,11 +127,12 @@ def single_shot(proxies, cfg):
 			status['confirmed'] = True
 
 	except URLError as e:
-		status['error'] = str(e)
+		status['error'] = 'URLError: ' + str(e)
+		status['bad_proxy'] = is_bad_proxy(proxy, str(e))
 	except HTTPError as e:
-		status['error'] = str(e)
+		status['error'] = 'HTTPError: ' + str(e)
 	except Exception as e:
-		status['error'] = str(e)
+		status['error'] = 'Exception: ' + str(e)
 
 	return status
 
@@ -122,6 +143,8 @@ def print_status(status, verbosity=0):
 		entries.append(bcolors.OKBLUE + status['thread_attempt'] + bcolors.ENDC + '\n')
 
 	entries.append(bcolors.OKBLUE + 'Proxy: ' + status['proxy'] + bcolors.ENDC + '\n')
+	if status['bad_proxy']:
+		entries.append(bcolors.OKYELLOW + 'Proxy was weeded out: too many errors.' + bcolors.ENDC + '\n')
 
 	if 'error' in status:
 		entries.append(bcolors.FAIL + status['error'] + bcolors.ENDC + '\n')
@@ -155,15 +178,17 @@ def flood(threadName, delays, proxies, cfg):
 		if len(delays)>1:
 			delay = random.uniform(delays[0], delays[1])
 
-		try:
-			status = single_shot(proxies, cfg)
-			if 'error' not in status:
-				time.sleep(delay)
-		except:
-			continue
+		proxy = random.choice(proxies)
+		status = single_shot(proxy, cfg)
+
+		if status['bad_proxy']:
+			proxies.remove(proxy)
 
 		status['thread_attempt'] = threadName + ': attempt #' + str(iteration)
 		print_status(status, 0)
+
+		if 'error' not in status:
+			time.sleep(delay)
 		iteration += 1
 
 
@@ -227,7 +252,8 @@ def main(argv):
 
 	# One-shot
 	elif mode == 'o':
-		status = single_shot(locator.proxies, cfg)
+		proxy = random.choice(locator.proxies)
+		status = single_shot(proxy, cfg)
 		print_status(status, verbosity)
 
 	# Cookies analysis
