@@ -11,7 +11,7 @@ import _thread
 import random
 import sys, getopt
 
-import generator
+import generator, art
 from proxy_locator import ProxyLocator
 
 # from my_profiles import SkuSkuScammer, SoldesCouponPCSScammer, RechargePCSScammer
@@ -26,7 +26,7 @@ class bcolors:
     ENDC = '\033[0m'
 
 
-def get_cookies(proxy, url, useragent, timeout):
+def get_cookies(proxy, url, useragent, timeout=.500):
 	proxy_support = ProxyHandler({'https': proxy})
 	cj = CookieJar()
 	opener = build_opener(proxy_support, HTTPCookieProcessor(cj))
@@ -174,6 +174,10 @@ def print_status(status, verbosity=0):
 def flood(threadName, delays, proxies, cfg):
 	iteration = 0
 	while True:
+		if len(proxies) == 0:
+			print(bcolors.FAIL + 'Proxy list is empty. Terminating.' + bcolors.ENDC)
+			break
+
 		delay = delays[0]
 		if len(delays)>1:
 			delay = random.uniform(delays[0], delays[1])
@@ -183,9 +187,6 @@ def flood(threadName, delays, proxies, cfg):
 
 		if status['bad_proxy'] and proxy in proxies:
 			proxies.remove(proxy)
-		if len(proxies) == 0:
-			print(bcolors.FAIL + 'Proxy list is empty. Terminating.' + bcolors.ENDC)
-			break
 
 		status['thread_attempt'] = threadName + ': attempt #' + str(iteration)
 		print_status(status, 0)
@@ -228,11 +229,12 @@ def main(argv):
 		elif o in ("-c", "--cookie"):
 			mode = 'c'
 			url = a
-			print("Analyzing cookies from: " + url)
 		else:
 			assert False, "unhandled option"
 
 	# Init
+	art.show_logo()
+
 	generator.load_tables()
 	cfg = Config()
 	locator = ProxyLocator(cfg.proxy_handlers)
@@ -261,9 +263,11 @@ def main(argv):
 
 	# Cookies analysis
 	elif mode == 'c':
+		print("Analyzing cookies from: " + url)
 		proxy = random.choice(locator.proxies)
 		print(bcolors.OKYELLOW + 'proxy: ' + proxy + bcolors.ENDC)
-		cookies = get_cookies(proxy, url, 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36')
+		useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
+		cookies = get_cookies(proxy, url, useragent, 1)
 		print(cookies)
 
 
