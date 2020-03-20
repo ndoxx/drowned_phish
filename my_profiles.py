@@ -160,7 +160,7 @@ class RechargePCSScammer(ScammerProfile):
 	def __init__(self):
 		ScammerProfile.__init__(self, 'https://rechargepcs.com/includes/action.php')
 		self.sessid_url = 'https://rechargepcs.com/index.php'
-		self.sessid_name = 'PHPSESSID'
+		self.sessid_name = ['PHPSESSID']
 		self.headers = {'accept': 'application/json, text/javascript, */*; q=0.01',
 						'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
 						'content-type': 'multipart/form-data; boundary=----WebKitFormBoundaryxsDpseKLqMQ2Xj87',
@@ -184,3 +184,32 @@ class RechargePCSScammer(ScammerProfile):
 				'showcode': '0',
 				'valider': 'Lancer la vérification',
 				}
+
+class LevelrunnScammer(ScammerProfile):
+	def __init__(self):
+		ScammerProfile.__init__(self, 'https://levelrunn.com/fr/gateway.html')
+		self.sessid_url = 'https://levelrunn.com/fr/gateway.html'
+		self.sessid_name = ['__cfduid','PHPSESSID_MS']
+		self.headers = {'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
+						'accept-language': 'en-US,en;q=0.9,fr-FR;q=0.8,fr;q=0.7',
+						'cache-control': 'max-age=0',
+						'content-type': 'application/x-www-form-urlencoded',
+						'dnt': '1',
+						'origin': 'https://levelrunn.com',
+						'referer': 'https://levelrunn.com/fr/gateway.html',
+						'sec-fetch-mode': 'navigate',
+						'sec-fetch-site': 'same-origin',
+						'sec-fetch-user': '?1',
+						'upgrade-insecure-requests': '1',
+}
+		self.confirmation_regex = ''
+
+	def forge_data(self, identity):
+		return {'type': 'campaign',
+				'onSuccess': '/fr/approved.html',
+				'onDeny': '/fr/denied.html',
+				'cc-cardnumber': identity.card,
+				'cc-expires-month': identity.expm,
+				'cc-expires-year': identity.expy,
+				'cc-cvv2': identity.cvv,
+}

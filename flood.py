@@ -58,7 +58,7 @@ def get_cookies(proxy, url, useragent, timeout=.500):
 		print(bcolors.FAIL + str(e) + bcolors.ENDC)
 
 
-def obtain_session_id(proxy, profile, useragent, timeout):
+def session_id_string(proxy, profile, useragent, timeout):
 	if profile.sessid_url is None:
 		return None
 
@@ -66,14 +66,21 @@ def obtain_session_id(proxy, profile, useragent, timeout):
 	if not cookies or cookies is None:
 		return None
 
-	return cookies[profile.sessid_name]
+	# Create session ID string by concatenating each key/value pair for each cookie name
+	sessid = ''
+	for ii, field in enumerate(profile.sessid_name):
+		if ii < len(profile.sessid_name)-1:
+			sessid += '; '
+		sessid += field + '=' + str(cookies[field])
+
+	return sessid
 
 
 proxy_error_score = {}
 def is_bad_proxy(proxy, error):
 	global proxy_error_score
 	score = 0
-	m = re.search('(Connection refused|403 Forbidden|Tunnel connection failed|Connection reset by peer)', error)
+	m = re.search('(Connection refused|403|Tunnel connection failed|Connection reset by peer)', error)
 	if m is not None:
 		score = 5
 	m = re.search('(timed out)', error)
@@ -100,13 +107,13 @@ def single_shot(proxy, cfg):
 
 	# If session ID is required, get one from cookies
 	if cfg.profile.sessid_url is not None:
-		sessid = obtain_session_id(proxy, profile, identity.useragent, cfg.get_timeout)
+		sessid = session_id_string(proxy, cfg.profile, identity.useragent, cfg.get_timeout)
 		if sessid is not None:
 			status['sessid'] = sessid
-			cfg.profile.headers['cookie'] = cfg.profile.sessid_name + '=' + sessid
+			cfg.profile.headers['cookie'] = sessid
 		else:
 			status['error'] = '<Failed to obtain SESSID>'
-			return
+			return status
 
 	data = cfg.profile.forge_data(identity)
 	status['data'] = str(data)
@@ -269,7 +276,7 @@ def main(argv):
 		useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 		cookies = get_cookies(proxy, url, useragent, 1)
 		print(cookies)
-
+		
 
 if __name__ == '__main__':
     main(sys.argv[1:])
