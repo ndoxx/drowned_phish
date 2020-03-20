@@ -2,6 +2,9 @@ import random, string
 from profile import ScammerProfile
 
 class SkuSkuScammer(ScammerProfile):
+	"""
+	Website is down.
+	"""
 	def __init__(self):
 		ScammerProfile.__init__(self, 'https://aquitementfr.tv/fr/skusku992.php')
 		self.headers = {'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',

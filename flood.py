@@ -69,9 +69,9 @@ def session_id_string(proxy, profile, useragent, timeout):
 	# Create session ID string by concatenating each key/value pair for each cookie name
 	sessid = ''
 	for ii, field in enumerate(profile.sessid_name):
+		sessid += field + '=' + str(cookies[field])
 		if ii < len(profile.sessid_name)-1:
 			sessid += '; '
-		sessid += field + '=' + str(cookies[field])
 
 	return sessid
 
@@ -276,7 +276,7 @@ def main(argv):
 		useragent = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 		cookies = get_cookies(proxy, url, useragent, 1)
 		print(cookies)
-		
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])

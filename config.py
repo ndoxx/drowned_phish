@@ -3,8 +3,8 @@ from proxy_handlers import ProxySiteHandler, ProxyListDownloadHandler, PubProxyH
 
 class Config:
 	def __init__(self):
-		self.profile = SkuSkuScammer()
-		# self.profile = LevelrunnScammer() # WIP
+		# self.profile = SkuSkuScammer()
+		self.profile = LevelrunnScammer() # WIP
 		# self.profile = RechargePCSScammer()
 		self.proxy_handlers = [	ProxyListDownloadHandler(country='FR'),
 								# ProxyListDownloadHandler(country='US'), 
